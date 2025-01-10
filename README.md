@@ -1,5 +1,7 @@
 # pyspark-data-sources
 
+[Databricks blog ref](https://www.databricks.com/blog/simplify-data-ingestion-new-python-data-source-api)
+
 ```bash
 git clone https://github.com/allisonwang-db/pyspark-data-sources
 cd pyspark-data-sources
