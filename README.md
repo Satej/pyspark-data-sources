@@ -58,10 +58,25 @@ Took me around 43 mins to build in a 8 gb machine.
 
 ```bash
 cd ..
-python3 -m venv .venv
+curl -fsSL https://pyenv.run | bash
+export PYENV_ROOT="$HOME/.pyenv"
+[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init - bash)"
+
+# Restart your shell for the changes to take effect.
+# Load pyenv-virtualenv automatically by adding
+# the following to ~/.bashrc:
+eval "$(pyenv virtualenv-init -)"
+
+sudo apt update
+sudo apt install -y build-essential libbz2-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev zlib1g-dev libsqlite3-dev liblzma-dev
+pyenv install 3.9
+pyenv local 3.9  # Activate Python 3.9 for the current project
+
+sudo apt install python3.12-venv
+python3.9 -m venv .venv
 . .venv/bin/activate
 cd spark
-pip install setuptools
 cd python/packaging/classic && python setup.py sdist
 ```
 
@@ -69,7 +84,7 @@ cd python/packaging/classic && python setup.py sdist
 cd ../../../../.
 git clone https://github.com/allisonwang-db/pyspark-data-sources
 cd pyspark-data-sources
-pip install poetry filelock
+pip install poetry wheel faker
 poetry lock
 poetry install
 poetry run pip install ../spark/python/dist/pyspark-4.0.0.dev0.tar.gz
@@ -79,18 +94,34 @@ Output
 
 ```bash
 Processing /home/ubuntu/spark/python/dist/pyspark-4.0.0.dev0.tar.gz
-  Installing build dependencies ... done
-  Getting requirements to build wheel ... done
-  Preparing metadata (pyproject.toml) ... done
-Collecting py4j==0.10.9.8 (from pyspark==4.0.0.dev0)
-  Downloading py4j-0.10.9.8-py2.py3-none-any.whl.metadata (1.3 kB)
-Downloading py4j-0.10.9.8-py2.py3-none-any.whl (202 kB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 202.8/202.8 kB 4.6 MB/s eta 0:00:00
+  Preparing metadata (setup.py) ... done
+Requirement already satisfied: py4j==0.10.9.8 in /home/ubuntu/.venv/lib/python3.9/site-packages (from pyspark==4.0.0.dev0) (0.10.9.8)
 Building wheels for collected packages: pyspark
-  Building wheel for pyspark (pyproject.toml) ... done
-  Created wheel for pyspark: filename=pyspark-4.0.0.dev0-py2.py3-none-any.whl size=390438949 sha256=5efdf9694aaa39607f411ad027c5ed65870a503a99943e3c0c77de41b6b465bc
-  Stored in directory: /home/ubuntu/.cache/pip/wheels/f0/7b/b8/4d9a067c31e669ac0f1714a49fe2e2261b21fd9f189b97149c
+  Building wheel for pyspark (setup.py) ... done
+  Created wheel for pyspark: filename=pyspark-4.0.0.dev0-py2.py3-none-any.whl size=390438906 sha256=0f8e95648ce1073cdb26e807c2fc2485012b6f4fb88c622ccf04be5338d3d43e
+  Stored in directory: /home/ubuntu/.cache/pip/wheels/b4/22/ad/d9e2e585794948b8fcdbf0df9be32a096bc113698647363e02
 Successfully built pyspark
-Installing collected packages: py4j, pyspark
-Successfully installed py4j-0.10.9.8 pyspark-4.0.0.dev0
+Installing collected packages: pyspark
+  Attempting uninstall: pyspark
+    Found existing installation: pyspark 4.0.0.dev0
+    Uninstalling pyspark-4.0.0.dev0:
+      Successfully uninstalled pyspark-4.0.0.dev0
+Successfully installed pyspark-4.0.0.dev0
+
+[notice] A new release of pip is available: 23.0.1 -> 24.3.1
+[notice] To update, run: pip install --upgrade pip
+```
+
+```bash
+pyspark
+>>> from pyspark_datasources import FakeDataSource
+>>> spark.dataSource.register(FakeDataSource)
+>>> spark.read.format("fake").load().show()
++------------+----------+-------+-----------+                                   
+|        name|      date|zipcode|      state|
++------------+----------+-------+-----------+
+|  Lisa Mills|1976-12-19|  23138|Mississippi|
+|  Amber West|2000-10-05|  82350|   Oklahoma|
+|Frances Chen|1991-07-28|  90949|   New York|
++------------+----------+-------+-----------+
 ```
